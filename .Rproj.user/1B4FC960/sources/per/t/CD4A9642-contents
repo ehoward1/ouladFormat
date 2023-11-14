@@ -1,0 +1,106 @@
+#' Return formatted VLE dataset based on activity types
+#'
+#' Load and formats the student Virtual Learning Environment (VLE) dataset from the OULAD for data analysis.
+#'
+#' @param module Name of the module to be included, either \code{"AAA"}, \code{"BBB"}, \code{"CCC"}, \code{"DDD"}, \code{"EEE"}, \code{"FFF"} or \code{"GGG"}.
+#' @param presentation Name of the semester of the module to be included, either \code{"2013B"} or \code{"2014B"} or \code{"2013J"} or \code{"2014J"} or \code{"All"}.
+#' \code{"B"} indicates a February start time whereas \code{"J"} indicates an October start time. \code{"All"} indicates that all presentations of the course will included in the returned data.
+#' @param repeat_students Indicator of whether students who had previous attempts at the module should be removed, either \code{"remove"} or \code{"keep"}.
+#' @param week_begin First week of activity to be included in reformatted data. Depending on the presentation, students
+#' started to view activities four weeks prior to week 1.
+#' @param week_end Last week of activity to be included in reformatted data.
+#'
+#' @returns Two tibbles containing 1) the filtered dataset, and 2) dataset of views by students
+#' based on activities. The input values selected are also returned.
+#' @export
+#' @importFrom dplyr "select" "filter" "mutate_all" "tibble"
+#' @importFrom magrittr "%>%"
+#' @importFrom tidyr "pivot_wider" "replace_na"
+#' @importFrom stats "aggregate"
+#' @importFrom utils "read.csv"
+#' @seealso \code{\link{convert_VLE}}, \code{\link{dataset_VLE_time}} and \code{\link{VLE_learning_classification}}
+#' @examples
+#' VLE_data = dataset_VLE_activity(module = "BBB", presentation = "2013J", repeat_students = "remove",
+#'                             week_begin = 1, week_end = 39)
+dataset_VLE_activity = function(module = c("AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG"),
+                       presentation = c("2013B", "2014B", "2013J", "2014J", "All"),
+                       repeat_students = c("remove", "keep"),
+                       week_begin = -4, week_end = 39){
+
+  # Bind variables
+  code_module = possible_pres = id_student = code_presentation = num_of_prev_attempts =
+    activity =  count = NULL
+
+  # Summary: Need dataset with click data and vle_activity description
+  click_data = read.csv(path_to_file("studentVLE.csv"), header = TRUE)
+  activity_description = read.csv(path_to_file("vle.csv"), header = TRUE)
+
+  # For matching
+  module = match.arg(module)
+  presentation = match.arg(presentation)
+  repeat_students = match.arg(repeat_students)
+
+  # Filter by module
+  click_data = filter(click_data, code_module == module)
+
+  if(presentation == "All"){
+
+    # Find and remove students who are not on their first attempt of a module
+    data_demo = read.csv(path_to_file("studentInfo.csv"), header = TRUE)
+    data_demo = select(data_demo, id_student, code_module, code_presentation, num_of_prev_attempts)
+    combined = merge(click_data, data_demo, by=c("id_student", "code_module", "code_presentation"))
+    click_data = filter(combined, num_of_prev_attempts == 0)
+
+  }else{
+
+    # filter by specific presentation
+    possible_pres = unique(click_data$code_presentation)
+
+    if(presentation %in% possible_pres){
+
+      click_data = filter(click_data, code_presentation == presentation)
+
+      if(repeat_students == "remove"){
+
+        data_demo = read.csv(path_to_file("studentInfo.csv"), header = TRUE)
+        data_demo = select(data_demo, id_student, code_module, code_presentation, num_of_prev_attempts)
+        combined = merge(click_data, data_demo, by=c("id_student", "code_module", "code_presentation"))
+        click_data = filter(combined, num_of_prev_attempts == 0)
+      }
+
+    }else{
+      stop("Possible presentations for the module chosen are ", list(possible_pres))
+    }
+  }
+
+  #Filter by week
+  if(week_begin==0){stop("Beginning week cannot be 0")}
+  if(week_end==0){stop("Ending week cannot be 0")}
+  date_lower = ifelse(week_begin > 0, (week_begin-1)*7, (week_begin*7)-1)
+  date_upper = ifelse(week_end > 0, (week_end*7)+1, (week_end+1)*7)
+  click_data = filter(click_data, date > date_lower)
+  click_data = filter(click_data, date < date_upper)
+
+  # Now merge with description
+  vle_combined = merge(activity_description, click_data, by=c("code_module", "code_presentation", "id_site"))
+
+  # Create a count for each date
+  click_data = aggregate(vle_combined$sum_click, by=list(vle_combined$id_student, vle_combined$activity_type), FUN=sum) %>% tibble()
+
+  # rename columns
+  colnames(click_data) = c("id_student", "activity", "count")
+
+  # Change from a long to wide dataframe where each column represents one date
+  click_data_resources = pivot_wider(click_data, names_from = activity, values_from = count)%>%
+    mutate_all(~replace_na(.,0)) # replace NAs with 0 (i.e., no view of an activity)
+
+
+  return(list(filtered_data = tibble(vle_combined),
+              resource_data = tibble(click_data_resources),
+              module = module,
+              presentation = presentation,
+              week_begin = week_begin,
+              week_end = week_end))
+}
+
+

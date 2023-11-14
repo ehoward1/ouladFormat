@@ -1,0 +1,26 @@
+{
+    "id": "15EA35A8",
+    "path": "~/Clustering Paper/ouladFormat/R/dataset_registration.R",
+    "project_path": "R/dataset_registration.R",
+    "type": "r_source",
+    "hash": "1611110726",
+    "contents": "",
+    "dirty": false,
+    "created": 1692116239367.0,
+    "source_on_save": false,
+    "relative_order": 4,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "69,32",
+        "scrollLine": "56"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1692128324,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1692128324009,
+    "read_only": false,
+    "read_only_alternatives": []
+}

@@ -1,0 +1,144 @@
+#' Return formatted VLE dataset for daily and weekly counts
+#'
+#' Load and formats the student Virtual Learning Environment (VLE) dataset from the OULAD for data analysis.
+#'
+#' @param module Name of the module to be included, either \code{"AAA"}, \code{"BBB"}, \code{"CCC"}, \code{"DDD"}, \code{"EEE"}, \code{"FFF"} or \code{"GGG"}.
+#' @param presentation Name of the semester of the module to be included, either \code{"2013B"} or \code{"2014B"} or \code{"2013J"} or \code{"2014J"} or \code{"All"}.
+#' \code{"B"} indicates a February start time whereas \code{"J"} indicates an October start time. \code{"All"} indicates that all presentations of the course will included in the returned data.
+#' @param repeat_students Indicator of whether students who had previous attempts at the module should be removed, either \code{"remove"} or \code{"keep"}.
+#'
+#' @returns Three tibbles containing 1) the filtered dataset, 2) dataset of daily views by students, and
+#' 3) dataset of weekly views for students. The module and presentation values selected are also returned.
+#' @export
+#' @importFrom dplyr "select" "filter" "mutate_all" "tibble"
+#' @importFrom magrittr "%>%"
+#' @importFrom tidyr "pivot_wider" "replace_na"
+#' @importFrom stats "aggregate"
+#' @importFrom utils "read.csv"
+#' @seealso \code{\link{convert_VLE}}
+#' @examples
+#' VLE_data = dataset_VLE_time(module = "BBB", presentation = "2013J", repeat_students = "remove")
+dataset_VLE_time = function(module = c("AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG"),
+                             presentation = c("2013B", "2014B", "2013J", "2014J", "All"),
+                             repeat_students = c("remove", "keep")){
+
+  # Bind the variables locally
+  code_module = possible_pres = id_student = code_presentation = num_of_prev_attempts =
+    comparison = missing_days = zero = column_number = count = NULL
+
+  # Summary: Need dataset with click data only
+  click_data = read.csv(path_to_file("studentVLE.csv"), header = TRUE)
+
+  # For matching
+  module = match.arg(module)
+  presentation = match.arg(presentation)
+  repeat_students = match.arg(repeat_students)
+
+  # Filter by module
+  click_data = filter(click_data, code_module == module)
+
+  if(presentation == "All"){
+
+    # Find and remove students who are not on their first attempt of a module
+    data_demo = read.csv(path_to_file("studentInfo.csv"), header = TRUE)
+    data_demo = select(data_demo, id_student, code_module, code_presentation, num_of_prev_attempts)
+    combined = merge(click_data, data_demo, by=c("id_student", "code_module", "code_presentation"))
+    click_data = filter(combined, num_of_prev_attempts == 0)
+
+  }else{
+
+    # filter by specific presentation
+    possible_pres = unique(click_data$code_presentation)
+
+    if(presentation %in% possible_pres){
+
+      click_data = filter(click_data, code_presentation == presentation)
+
+      if(repeat_students == "remove"){
+
+        data_demo = read.csv(path_to_file("studentInfo.csv"), header = TRUE)
+        data_demo = select(data_demo, id_student, code_module, code_presentation, num_of_prev_attempts)
+        combined = merge(click_data, data_demo, by=c("id_student", "code_module", "code_presentation"))
+        click_data = filter(combined, num_of_prev_attempts == 0)
+      }
+
+    }else{
+      stop("Possible presentations for the module chosen are ", list(possible_pres))
+    }
+  }
+
+  # now to create daily counts!
+
+  # Create a count for each date
+  click_data = aggregate(click_data$sum_click, by=list(click_data$id_student, click_data$date), FUN=sum) %>% tibble()
+
+  # rename columns
+  colnames(click_data) = c("id_student", "date", "count")
+
+  # Change from a long to wide dataframe where each column represents one date
+  click_data_daily = pivot_wider(click_data, names_from = date, values_from = count)%>%
+    mutate_all(~replace_na(.,0)) # replace NAs with 0 (i.e., no view on a day)
+
+  # Add in any days we are missing
+  days=colnames(click_data_daily[-1]) %>% as.numeric()
+  comparison = seq(from=min(days), to=max(days), by=1)
+  missing_days = which(is.na(match(comparison, days))) +1
+  column_number = ncol(click_data_daily) + length(missing_days)
+
+  j=2
+  test = click_data_daily[,1]
+
+  for(i in 2:column_number){
+    if(i %in% missing_days){
+      test = cbind.data.frame(test, 0)
+    }else{
+      test = cbind.data.frame(test, click_data_daily[,j])
+      j=j+1
+    }
+  }
+
+  colnames(test) = c("id_student", min(days):max(days))
+  click_data_daily = tibble(test)
+
+  # Now to create weekly counts!
+  click_data_weekly = click_data_daily[,1]
+  zero = which(colnames(click_data_daily)==0) # find column where module began
+
+  # Weeks prior to start (Day 0)
+  pre_week_numbers=ceiling(zero/7)
+  for(i in 1:pre_week_numbers){
+    if((zero-i*7)<0){ # check if we go out of bounds
+      click_data_weekly[,i+1] = apply(click_data_daily[,2:(zero-(i-1)*7-1)], MARGIN=1, sum)
+    }else{
+      click_data_weekly[,i+1] = apply(click_data_daily[,(zero-i*7):(zero-(i-1)*7-1)], MARGIN=1, sum)
+    }
+  }
+  click_data_weekly = data.frame(click_data_weekly[,1], rev(click_data_weekly[,-1]))
+
+  # Weeks all the modules have
+  for(i in 1:33){
+    click_data_weekly[,pre_week_numbers+i+1] = apply(click_data_daily[,(zero+(i-1)*7):(zero+6+(i-1)*7)], MARGIN=1, sum)
+  }
+
+  # Extra weeks
+  max_weeks = ceiling(ncol(click_data_daily[,-(1:zero-1)])/7)
+
+  for(i in 34:max_weeks){
+    if((zero+6+(i-1)*7)>ncol(click_data_daily)){
+      click_data_weekly[,pre_week_numbers+i+1] = apply(click_data_daily[,(zero+(i-1)*7):ncol(click_data_daily)], MARGIN=1, sum)
+    }else{
+      click_data_weekly[,pre_week_numbers+i+1] = apply(click_data_daily[,(zero+(i-1)*7):(zero+6+(i-1)*7)], MARGIN=1, sum)
+    }
+  }
+
+  colnames(click_data_weekly) = c("id_student",
+                                  paste0("Week-pre-",ceiling(zero/7):1),
+                                  paste0("Week",1:33),
+                                  paste0("Week",34:max_weeks))
+
+  return(list(filtered_data = tibble(click_data),
+              daily_data = tibble(click_data_daily),
+              weekly_data = tibble(click_data_weekly),
+              module = module,
+              presentation = presentation))
+}

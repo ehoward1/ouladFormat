@@ -1,0 +1,27 @@
+{
+    "id": "CD4A9642",
+    "path": "~/Clustering Paper/ouladFormat/R/dataset_VLE_activity.R",
+    "project_path": "R/dataset_VLE_activity.R",
+    "type": "r_source",
+    "hash": "3115409260",
+    "contents": "",
+    "dirty": false,
+    "created": 1692117270647.0,
+    "source_on_save": false,
+    "relative_order": 7,
+    "properties": {
+        "tempName": "Untitled1",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "0,10",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1692125741,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1692125741744,
+    "read_only": false,
+    "read_only_alternatives": []
+}
