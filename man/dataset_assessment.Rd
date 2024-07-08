@@ -2,30 +2,44 @@
 % Please edit documentation in R/dataset_assessment.R
 \name{dataset_assessment}
 \alias{dataset_assessment}
-\title{Return formatted assessment dataset}
+\title{Returns the formatted assessment data sets}
 \usage{
 dataset_assessment(
   module = c("All", "AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG"),
   presentation = c("2013B", "2014B", "2013J", "2014J", "All", "Summer", "Winter"),
-  repeat_students = c("remove", "keep")
+  repeat_students = c("remove", "keep"),
+  week_begin = 1,
+  week_end = 39,
+  na.rm = FALSE
 )
 }
 \arguments{
-\item{module}{Name of the module to be included, either \code{"AAA"}, \code{"BBB"}, \code{"CCC"}, \code{"DDD"}, \code{"EEE"}, \code{"FFF"} or \code{"GGG"}.}
+\item{module}{name of the module to be included, either \code{"All"}, \code{"AAA"}, \code{"BBB"}, \code{"CCC"}, \code{"DDD"}, \code{"EEE"}, \code{"FFF"} or \code{"GGG"}.}
 
-\item{presentation}{Name of the semester of the module to be included, either \code{"2013B"},
+\item{presentation}{name of the semester of the module to be included, either \code{"2013B"},
 \code{"2014B"}, \code{"2013J"}, \code{"2014J"}, \code{"All"}, \code{"Summer"} or \code{"Winter"}.
-\code{"B"} indicates a February start time whereas \code{"J"} indicates an October start time. \code{"All"} indicates that all presentations of the module will be included in the returned data.}
+\code{"B"} indicates a February start time whereas \code{"J"} indicates an October start time. \code{"All"} indicates
+that all presentations of the module will be included in the returned data. \code{"Summer"} returns both \code{"2013B"} and \code{"2014B"}.
+\code{"Winter"} returns both \code{"2013J"} and \code{"2014J"}.}
 
-\item{repeat_students}{Indicator of whether students who had previous attempts at the module should be removed, either \code{"remove"} or \code{"keep"}.}
+\item{repeat_students}{indicator of whether students who had previous attempts at the module should be removed, either \code{"remove"} or \code{"keep"}.}
+
+\item{week_begin}{the first semester week of the assessment data to be included in formatted data.}
+
+\item{week_end}{the last semester week of the assessment data to be included in the formatted data. To ensure all
+continuous assessment is included regardless of the module, set this to 39, the last week of data.}
+
+\item{na.rm}{logical. Indicates whether NAs should be omitted from the average continuous assessment calculations (default)
+or treated as zeroes. This calculation only includes continuous assessment that
+were due between the period set by \code{"week_begin"} and \code{"week_end"} inclusive.}
 }
 \value{
-Returns the inputs specified - module, presentation and whether repeat students are to be included.
-Four tibbles are also returned: 1) assessment_data, 2) assessment_performance,
-3) assessment_reactivity and 4) assessments.
+Returns four tibbles based on the OULAD studentAssessment.csv and assessments.csv files
+and the specified inputs (module, presentation, and repeat_students). The four tibbles are:
+1) assessment_data, 2) assessment_performance, 3) assessment_reactivity and 4) assessments.
 }
 \description{
-Load, combines and formats the assessment and student assessment datasets from the OULAD for data analysis.
+Load, combines and formats the assessment and student assessment data sets from the OULAD for data analysis.
 }
 \section{assessment_data tibble}{
 
@@ -33,16 +47,16 @@ A tibble based on the combined oulad files of studentAssessment.csv and assessme
 and the inputs. The tibble consists of (Kuzilek et al., 2017):
 
 \itemize{
-\item{id_assessment - the assessment identification number.}
-\item{code_module - the module identification code.}
-\item{code_presentation - the presentation identification code.}
-\item{assessment_type - the type of assessment.}
+\item{id_assessment - assessment identification number.}
+\item{code_module - module identification code.}
+\item{code_presentation - module presentation identification code.}
+\item{assessment_type - type of assessment.}
 \item{date - due date of the assessment in the module term.}
-\item{weight - the weight of the assessment.}
-\item{id_student - the unique student identification number.}
-\item{date_submitted - the day of the assessment submission by student.}
+\item{weight - weight of the assessment.}
+\item{id_student - unique student identification number.}
+\item{date_submitted - day of the assessment submission by student.}
 \item{is_banked - logical indicator whether assessment result has been transferred from a previous presentation.}
-\item{score - the student’s score for the specific assessment (range 0-100).}
+\item{score - student’s score for the specific assessment (range 0-100).}
 \item{reactivity - calculated using the date variable minus date_submitted variable.}
 }
 }
@@ -60,25 +74,26 @@ and have weight equal to 100\%. The sum of all other assessments is also 100\% (
 
 A tibble where each row represents a unique student and their scores in the range of 0-100
 for different assessment items. The final column states each student's average assessment score based on their assessment
-scores and the assessments weights. For this calculation NA is treated as 0.
+scores and the assessments weights. The NAs may be as 0 or not included (default; see na.rm argument).
 Details of the assessment items can be seen in the assessments tibble.
 }
 
 \section{assessment_reactivity}{
 
 A tibble where each row represents a unique student and their reactivity for
-different assessment items. Treuillier and Boyer (2021) define reactivity for the oulad as the delay between
+different assessment items. Treuillier and Boyer (2021) define reactivity for the OULAD as the delay between
 the date the assessment is returned and the deadline (in days). Negative numbers indicate overdue assessments.
 Details of the assessment items can be seen in the assessments tibble.
 }
 
 \examples{
-dataset_assessment(module = "BBB", presentation = "2013J", repeat_students = "remove")
+dataset_assessment(module = "BBB", presentation = "2013J",
+repeat_students = "remove", na.rm = FALSE)
 }
 \references{
 Treuillier, C., & Boyer, A. (2021). Identification of class-representative learner personas.
 In LA4SLE 2021 - Learning Analytics for Smart Learning Environments (pp. 38-45). Bolzano, Italy.
-⟨hal-03549915
+<hal-0354991>.
 
 Kuzilek, J., Hlosta, M., & Zdrahal, Z. (2017). Open university learning analytics dataset. Scientific Data
 volume 4, (pp. 1–8). https://doi.org/10.1038/sdata.2017.171.

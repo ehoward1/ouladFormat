@@ -2,7 +2,7 @@
 % Please edit documentation in R/dataset_VLE_activity.R
 \name{dataset_VLE_activity}
 \alias{dataset_VLE_activity}
-\title{Return formatted VLE dataset based on activity types}
+\title{Returns the formatted VLE data set based on activity types}
 \usage{
 dataset_VLE_activity(
   module = c("AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG"),
@@ -14,30 +14,35 @@ dataset_VLE_activity(
 )
 }
 \arguments{
-\item{module}{Name of the module to be included, either \code{"AAA"}, \code{"BBB"}, \code{"CCC"}, \code{"DDD"}, \code{"EEE"}, \code{"FFF"} or \code{"GGG"}.}
+\item{module}{name of the module to be included, either \code{"AAA"}, \code{"BBB"}, \code{"CCC"}, \code{"DDD"}, \code{"EEE"}, \code{"FFF"} or \code{"GGG"}.}
 
-\item{presentation}{Name of the semester of the module to be included, either \code{"2013B"},
+\item{presentation}{name of the semester of the module to be included, either \code{"2013B"},
 \code{"2014B"}, \code{"2013J"}, \code{"2014J"}, or \code{"All"}.
 \code{"B"} indicates a February start time whereas \code{"J"} indicates an October start time. \code{"All"} indicates that all presentations of the module will be included in the returned data.}
 
-\item{repeat_students}{Indicator of whether students who had previous attempts at the module should be removed, either \code{"remove"} or \code{"keep"}.
+\item{repeat_students}{indicator of whether students who had previous attempts at the module should be removed, either \code{"remove"} or \code{"keep"}.
 If presentation is set to \code{"All"}, this is automatically set to \code{"remove"}.}
 
-\item{week_begin}{First week of VLE data to be included in formatted data. Depending on the presentation, students
+\item{week_begin}{the first semester week of VLE data to be included in formatted data. Depending on the module presentation, students
 started to view activities four weeks prior to the initial module start date. Weeks prior to the initial module start
 are indicated by a negative integer.}
 
-\item{week_end}{Last week of VLE data to be included in the formatted data.}
+\item{week_end}{the last semester week of VLE data to be included in the outputted data.
+Week 39 is the last week material was viewed (and earlier in some module presentations).}
 
-\item{example_data}{TRUE/FALSE indicator for whether to run a subset of the data as an example}
+\item{example_data}{logical. Indicates whether to run a subset of the data as an example.}
 }
 \value{
-Returns the inputs specified - module, presentation, whether repeat students are to be included, the first week of VLE data to be included
-and the last week of VLE data to be included.
-Two tibbles are also returned: 1) filtered_data, and 2) resource_data.
+Returns two tibbles based on the OULAD studentVle.csv and vle.csv files,
+the specified inputs (module, presentation, and repeat_students), and
+the range of the weeks included in the tibbles. \code{week_begin} and \code{week_end}
+indicates the first and last semester week respectively that is included in
+the output tibbles. These may be different to the corresponding input parameters.
+Weeks prior to the initial module start day are indicated by a negative integer.
+The two tibbles returned are: 1) filtered_data, and 2) resource_data.
 }
 \description{
-Load and formats the student Virtual Learning Environment (VLE) dataset from the OULAD for data analysis.
+Load and formats the student Virtual Learning Environment (VLE) data set from the OULAD for data analysis.
 }
 \section{filtered_data tibble}{
 
@@ -65,7 +70,7 @@ different VLE activity types for the period (weeks) and module presentation inpu
 
 \examples{
 dataset_VLE_activity(module = "AAA", presentation = "2013J", repeat_students = "remove",
-                            week_begin = 1, week_end = 39, example_data = TRUE)
+                            week_begin = -4, week_end = 39, example_data = TRUE)
 }
 \references{
 Kuzilek, J., Hlosta, M., & Zdrahal, Z. (2017). Open university learning analytics dataset. Scientific Data

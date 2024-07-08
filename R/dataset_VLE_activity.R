@@ -1,22 +1,27 @@
-#' Return formatted VLE dataset based on activity types
+#' Returns the formatted VLE data set based on activity types
 #'
-#' Load and formats the student Virtual Learning Environment (VLE) dataset from the OULAD for data analysis.
+#' Load and formats the student Virtual Learning Environment (VLE) data set from the OULAD for data analysis.
 #'
-#' @param module Name of the module to be included, either \code{"AAA"}, \code{"BBB"}, \code{"CCC"}, \code{"DDD"}, \code{"EEE"}, \code{"FFF"} or \code{"GGG"}.
-#' @param presentation Name of the semester of the module to be included, either \code{"2013B"},
+#' @param module name of the module to be included, either \code{"AAA"}, \code{"BBB"}, \code{"CCC"}, \code{"DDD"}, \code{"EEE"}, \code{"FFF"} or \code{"GGG"}.
+#' @param presentation name of the semester of the module to be included, either \code{"2013B"},
 #' \code{"2014B"}, \code{"2013J"}, \code{"2014J"}, or \code{"All"}.
 #' \code{"B"} indicates a February start time whereas \code{"J"} indicates an October start time. \code{"All"} indicates that all presentations of the module will be included in the returned data.
-#' @param repeat_students Indicator of whether students who had previous attempts at the module should be removed, either \code{"remove"} or \code{"keep"}.
+#' @param repeat_students indicator of whether students who had previous attempts at the module should be removed, either \code{"remove"} or \code{"keep"}.
 #' If presentation is set to \code{"All"}, this is automatically set to \code{"remove"}.
-#' @param week_begin First week of VLE data to be included in formatted data. Depending on the presentation, students
+#' @param week_begin the first semester week of VLE data to be included in formatted data. Depending on the module presentation, students
 #' started to view activities four weeks prior to the initial module start date. Weeks prior to the initial module start
 #' are indicated by a negative integer.
-#' @param week_end Last week of VLE data to be included in the formatted data.
-#' @param example_data TRUE/FALSE indicator for whether to run a subset of the data as an example
+#' @param week_end the last semester week of VLE data to be included in the outputted data.
+#' Week 39 is the last week material was viewed (and earlier in some module presentations).
+#' @param example_data logical. Indicates whether to run a subset of the data as an example.
 #'
-#' @returns Returns the inputs specified - module, presentation, whether repeat students are to be included, the first week of VLE data to be included
-#' and the last week of VLE data to be included.
-#' Two tibbles are also returned: 1) filtered_data, and 2) resource_data.
+#' @returns Returns two tibbles based on the OULAD studentVle.csv and vle.csv files,
+#' the specified inputs (module, presentation, and repeat_students), and
+#' the range of the weeks included in the tibbles. \code{week_begin} and \code{week_end}
+#' indicates the first and last semester week respectively that is included in
+#' the output tibbles. These may be different to the corresponding input parameters.
+#' Weeks prior to the initial module start day are indicated by a negative integer.
+#' The two tibbles returned are: 1) filtered_data, and 2) resource_data.
 #'
 #' @section filtered_data tibble:
 #' A tibble based on the combined oulad files of studentVLE.csv and vle.csv,
@@ -45,12 +50,13 @@
 #' @export
 #' @importFrom dplyr "select" "filter" "mutate_all" "tibble"
 #' @importFrom magrittr "%>%"
+#' @importFrom utils "read.csv"
 #' @importFrom tidyr "pivot_wider" "replace_na"
 #' @importFrom stats "aggregate"
 #' @seealso \code{\link{convert_VLE}}, \code{\link{dataset_VLE_time}}, \code{\link{VLE_learning_classification}} and \code{\link{combined_dataset}}
 #' @examples
 #' dataset_VLE_activity(module = "AAA", presentation = "2013J", repeat_students = "remove",
-#'                             week_begin = 1, week_end = 39, example_data = TRUE)
+#'                             week_begin = -4, week_end = 39, example_data = TRUE)
 dataset_VLE_activity = function(module = c("AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG"),
                        presentation = c("2013B", "2014B", "2013J", "2014J", "All"),
                        repeat_students = c("remove", "keep"),
@@ -58,11 +64,10 @@ dataset_VLE_activity = function(module = c("AAA", "BBB", "CCC", "DDD", "EEE", "F
 
   # Bind variables
   code_module = possible_pres = id_student = code_presentation = num_of_prev_attempts =
-    activity =  count = NULL
+    activity = count = min_week = max_week = NULL
 
-  # Summary: Need dataset with click data and vle_activity description
+  # Set local environment
   env = environment()
-  load_github_modified("https://github.com/ehoward1/oulad_data/blob/d451a05599dfa66223197a917f4ca84d1849b3a2/studentVle.RData", env)
   load_github_modified("https://github.com/ehoward1/oulad_data/blob/5bbf34af9922471385371e0d26133d54015f21a2/vle.RData", env)
 
   # For matching
@@ -72,10 +77,12 @@ dataset_VLE_activity = function(module = c("AAA", "BBB", "CCC", "DDD", "EEE", "F
 
   # Work with subset of data for example as full dataset takes >5 sec to run
   if(example_data == TRUE){
-    studentVle = studentVle[12000:13500,]
     module = "AAA"
     presentation = "2013J"
     print("For this example, a subset of the data is used. This subset is drawn from module AAA and presentation 2013J.")
+    studentVle = read.csv(path_to_file("sample_studentVle.csv"), header = TRUE)
+  }else{
+    load_github_modified("https://github.com/ehoward1/oulad_data/blob/d451a05599dfa66223197a917f4ca84d1849b3a2/studentVle.RData", env)
   }
 
   # Data types
@@ -132,9 +139,13 @@ dataset_VLE_activity = function(module = c("AAA", "BBB", "CCC", "DDD", "EEE", "F
   if(week_begin > week_end){stop("week_begin should not be greater than week_end")}
 
   #Filter by week
-  date_lower = ifelse(week_begin > 0, (week_begin-1)*7, (week_begin*7)-1)
-  date_upper = ifelse(week_end > 0, (week_end*7)+1, (week_end+1)*7)
-  studentVle = filter(studentVle, date > date_lower, date < date_upper)
+  date_lower = ifelse(week_begin > 0, (week_begin-1)*7, (week_begin*7))
+  date_upper = ifelse(week_end > 0, (week_end*7)-1, ((week_end+1)*7)-1)
+  studentVle = filter(studentVle, date >= date_lower, date <= date_upper)
+  maxweek = max(studentVle$date)
+  max_week = ifelse(maxweek<0, floor(maxweek/7), ceiling((maxweek+1)/7))
+  minweek = min(studentVle$date)
+  min_week = ifelse(minweek<0, floor(minweek/7), ceiling((minweek+1)/7))
 
   # Now merge with description
   vle_combined = merge(vle, studentVle, by=c("code_module", "code_presentation", "id_site"))
@@ -155,8 +166,8 @@ dataset_VLE_activity = function(module = c("AAA", "BBB", "CCC", "DDD", "EEE", "F
               module = module,
               presentation = presentation,
               repeat_students = repeat_students,
-              week_begin = week_begin,
-              week_end = week_end))
+              week_begin = min_week,
+              week_end = max_week))
 }
 
 

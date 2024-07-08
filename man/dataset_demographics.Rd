@@ -2,7 +2,7 @@
 % Please edit documentation in R/dataset_demographics.R
 \name{dataset_demographics}
 \alias{dataset_demographics}
-\title{Return formatted demographic dataset}
+\title{Returns the formatted demographic data set}
 \usage{
 dataset_demographics(
   module = c("All", "AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG"),
@@ -11,27 +11,30 @@ dataset_demographics(
 )
 }
 \arguments{
-\item{module}{Name of the module to be included, either \code{"AAA"}, \code{"BBB"}, \code{"CCC"}, \code{"DDD"}, \code{"EEE"}, \code{"FFF"} or \code{"GGG"}.}
+\item{module}{name of the module to be included, either \code{"All"}, \code{"AAA"}, \code{"BBB"}, \code{"CCC"}, \code{"DDD"}, \code{"EEE"}, \code{"FFF"} or \code{"GGG"}.}
 
-\item{presentation}{Name of the semester of the module to be included, either \code{"2013B"},
+\item{presentation}{name of the semester of the module to be included, either \code{"2013B"},
 \code{"2014B"}, \code{"2013J"}, \code{"2014J"}, \code{"All"}, \code{"Summer"} or \code{"Winter"}.
-\code{"B"} indicates a February start time whereas \code{"J"} indicates an October start time. \code{"All"} indicates that all presentations of the module will be included in the returned data.}
+\code{"B"} indicates a February start time whereas \code{"J"} indicates an October start time. \code{"All"} indicates
+that all presentations of the module will be included in the returned data. \code{"Summer"} returns both \code{"2013B"} and \code{"2014B"}.
+\code{"Winter"} returns both \code{"2013J"} and \code{"2014J"}.}
 
-\item{repeat_students}{Indicator of whether students who had previous attempts at the module should be removed, either \code{"remove"} or \code{"keep"}.}
+\item{repeat_students}{indicator of whether students who had previous attempts at the module should be removed, either \code{"remove"} or \code{"keep"}.}
 }
 \value{
-Returns the inputs specified - module, presentation and whether repeat students are to be included.
-One tibble based on the oulad studentInfo.csv file and the inputs is also returned.
+Returns one tibble based on the OULAD studentInfo.csv file
+and the specified inputs (module, presentation, and repeat_students).
+
 The tibble consists of 12 columns (Kuzilek et al., 2017):
 
 \itemize{
 \item{code_module - module identification code.}
-\item{code_presentation - presentation identification code.}
+\item{code_presentation - module presentation identification code.}
 \item{id_student - the unique student identification number.}
 \item{gender - student’s gender, either Male or Female.}
-\item{region - the geographic region where the student lived while taking the module-presentation}
+\item{region - the geographic region where the student lived while taking the module-presentation.}
 \item{highest_education - the highest student education level on entry to the module presentation.}
-\item{imd_band - the Index of multiple deprivation band of the place where the student lived during the module-presentation.}
+\item{imd_band - the index of multiple deprivation band of the place where the student lived during the module-presentation.}
 \item{age_band - a band of student’s age.}
 \item{num_of_prev_attempts - the number of times the student has attempted this module previously.}
 \item{studied_credits - the total number of credits for the modules the student is currently studying.}
@@ -40,7 +43,7 @@ The tibble consists of 12 columns (Kuzilek et al., 2017):
 }
 }
 \description{
-Load and formats the student demographic dataset from the OULAD for data analysis.
+Load and formats the student demographic data set from the OULAD for data analysis.
 }
 \examples{
 dataset_demographics(module = "BBB", presentation = "2013J", repeat_students = "remove")

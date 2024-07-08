@@ -1,9 +1,11 @@
-#' Convert VLE data format
+#' Converts the VLE data format
 #'
-#' Convert the format of the Virtual Learning Environment (VLE) dataset from total view counts to binary, standardised or logarithmic view count data
+#' Converts the data format of the Virtual Learning Environment (VLE) data set from total view counts to binary, standardised or logarithmic view count data.
 #'
-#' @param data VLE dataset to be converted. The VLE dataset should consist of student_id as the first column followed by total view counts in the remaining columns.
-#' @param conversion Type of conversion to implement, either \code{"binary"}, \code{"standardise"},
+#' @param data VLE data set to be converted. The VLE data set should consist of student_id
+#' as the first column followed by total view counts per time period/activity in
+#' each of the remaining columns.
+#' @param conversion type of conversion to implement, either \code{"binary"}, \code{"standardise"} (using the scale function),
 #' or \code{"logarithmic"}.
 #'
 #' @return  Two tibbles are returned: 1) original_data, and 2) converted_data.
@@ -12,21 +14,23 @@
 #' A tibble of the original data inputted into the function.
 #'
 #' @section converted_data tibble:
-#' A tibble where all columns, except the first column, have been changed from total view counts to either binary, standardised or logarithmic view count data
+#' A tibble where all columns, except the first column, have been changed from total view counts to either binary, standardised or logarithmic view count data.
 #'
 #' @seealso
-#' \code{\link{dataset_VLE_time}} or \code{\link{dataset_VLE_activity}} for obtaining the VLE dataset needed for the input data
+#' \code{\link{dataset_VLE_time}} or \code{\link{dataset_VLE_activity}} for obtaining the VLE data set needed for the input data.
 #'
 #' @export
 #' @examples
-#' VLE_data = dataset_VLE_activity(module = "BBB",
-#' presentation = "2013J", repeat_students = "remove",
-#' week_begin = 1, week_end = 39, example_data = TRUE)$resource_data
+#' VLE_data = dataset_VLE_activity(example_data = TRUE)$resource_data
 #' convert_VLE(VLE_data, conversion = "standardise")
 #'
 #'\dontrun{
+#' VLE_data = dataset_VLE_time(example_data = TRUE)$weekly_data
+#' convert_VLE(VLE_data, conversion = "binary")
+#'
 #' VLE_data = dataset_VLE_time(module = "BBB",
-#' presentation = "2013J", repeat_students = "remove", example_data=TRUE)$weekly_data
+#' presentation = "2013J", repeat_students = "remove",
+#' week_begin = 1, week_end = 13, example_data=FALSE)$weekly_data
 #' convert_VLE(VLE_data, conversion = "binary")}
 convert_VLE = function(data, conversion = c("binary", "standardise", "logarithmic")){
 

@@ -1,13 +1,13 @@
 Package: ouladFormat
 Type: Package
 Title: Loads and Formats the Open University Learning Analytics Dataset for Data Analysis
-Version: 0.0.1
+Version: 1.0.0
 Authors@R: person("Emma", "Howard", email = "emhoward@tcd.ie", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-8104-1351"))
-Description: The Open University Learning Analytics Dataset (oulad), available from
+Description: The Open University Learning Analytics Dataset (OULAD), available from
     Kuzilek et al. (2017) <doi:10.1038/sdata.2017.171>, 
     contains information across 22 presentations of 7 Open University modules, and from
     the 32,593 students (or 28,785 unique students) taking these modules in 2013 and 
-    2014. The ouladFormat package loads, cleans and formats the oulad for data analysis 
+    2014. The ouladFormat package loads, cleans and formats the OULAD for data analysis 
     with its functions returning formatted data sets (each row of the dataset is an 
     individual student). The package’s main function, combined_dataset, allows 
     the user to choose whether the returned dataset includes assessment, demographics, 
@@ -17,7 +17,7 @@ Description: The Open University Learning Analytics Dataset (oulad), available f
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Imports: 
     dplyr,
     httr,

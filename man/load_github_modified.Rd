@@ -7,21 +7,21 @@
 load_github_modified(github_data_url, env)
 }
 \arguments{
-\item{github_data_url}{The GitHub url of the .RData dataset to be loaded.}
+\item{github_data_url}{The GitHub url of the .RData data set to be loaded.}
 
-\item{env}{Environment where the data is to be loaded to.}
+\item{env}{Environment where the data is to be loaded into.}
 }
 \value{
-Loads .Rdata into the local environment
+Loads the .RData into the local environment.
 }
 \description{
 Loads .RData files directly from a GitHub repository.
 The original Rfssa function (Haghbin et al., 2022) is
-based on the stackoverflow post (Hartman, 2016):
+based on the Stack Overflow post (Hartman, 2016):
 https://stackoverflow.com/questions/24846120/importing-data-into-r-rdata-from-github,
-and loads the .Rdata to the global environment. This function
+and loads the .RData to the global environment. This function
 allows the user to choose the environment which the
-.Rdata files are loaded to.
+.RData files are loaded to.
 }
 \examples{
 \dontrun{
@@ -31,8 +31,8 @@ load_github_modified("https://github.com/ehoward1/oulad_data/blob/
 }
 \references{
 Haghbin, H., Trinka, J., Najibi, S., M., & Maadooliat, M. (2022).
-Package 'Rfssa'. https://cran.r-project.org/web/packages/Rfssa/Rfssa.pdf
+Package 'Rfssa'. https://cran.r-project.org/web/packages/Rfssa/Rfssa.pdf.
 
-Hartman, R. (2016). Importing data into R (rdata) from Github.
-https://stackoverflow.com/questions/24846120/importing-data-into-r-rdata-from-github
+Hartman, R. (2016). Importing data into R (.rData) from Github.
+https://stackoverflow.com/questions/24846120/importing-data-into-r-rdata-from-github.
 }

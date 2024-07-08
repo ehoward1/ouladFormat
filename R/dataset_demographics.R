@@ -1,25 +1,28 @@
-#' Return formatted demographic dataset
+#' Returns the formatted demographic data set
 #'
-#' Load and formats the student demographic dataset from the OULAD for data analysis.
+#' Load and formats the student demographic data set from the OULAD for data analysis.
 #'
-#' @param module Name of the module to be included, either \code{"AAA"}, \code{"BBB"}, \code{"CCC"}, \code{"DDD"}, \code{"EEE"}, \code{"FFF"} or \code{"GGG"}.
-#' @param presentation Name of the semester of the module to be included, either \code{"2013B"},
+#' @param module name of the module to be included, either \code{"All"}, \code{"AAA"}, \code{"BBB"}, \code{"CCC"}, \code{"DDD"}, \code{"EEE"}, \code{"FFF"} or \code{"GGG"}.
+#' @param presentation name of the semester of the module to be included, either \code{"2013B"},
 #' \code{"2014B"}, \code{"2013J"}, \code{"2014J"}, \code{"All"}, \code{"Summer"} or \code{"Winter"}.
-#' \code{"B"} indicates a February start time whereas \code{"J"} indicates an October start time. \code{"All"} indicates that all presentations of the module will be included in the returned data.
-#' @param repeat_students Indicator of whether students who had previous attempts at the module should be removed, either \code{"remove"} or \code{"keep"}.
+#' \code{"B"} indicates a February start time whereas \code{"J"} indicates an October start time. \code{"All"} indicates
+#' that all presentations of the module will be included in the returned data. \code{"Summer"} returns both \code{"2013B"} and \code{"2014B"}.
+#' \code{"Winter"} returns both \code{"2013J"} and \code{"2014J"}.
+#' @param repeat_students indicator of whether students who had previous attempts at the module should be removed, either \code{"remove"} or \code{"keep"}.
 #'
-#' @returns Returns the inputs specified - module, presentation and whether repeat students are to be included.
-#' One tibble based on the oulad studentInfo.csv file and the inputs is also returned.
+#' @returns Returns one tibble based on the OULAD studentInfo.csv file
+#' and the specified inputs (module, presentation, and repeat_students).
+#'
 #' The tibble consists of 12 columns (Kuzilek et al., 2017):
 #'
 #' \itemize{
 #' \item{code_module - module identification code.}
-#' \item{code_presentation - presentation identification code.}
+#' \item{code_presentation - module presentation identification code.}
 #' \item{id_student - the unique student identification number.}
 #' \item{gender - student’s gender, either Male or Female.}
-#' \item{region - the geographic region where the student lived while taking the module-presentation}
+#' \item{region - the geographic region where the student lived while taking the module-presentation.}
 #' \item{highest_education - the highest student education level on entry to the module presentation.}
-#' \item{imd_band - the Index of multiple deprivation band of the place where the student lived during the module-presentation.}
+#' \item{imd_band - the index of multiple deprivation band of the place where the student lived during the module-presentation.}
 #' \item{age_band - a band of student’s age.}
 #' \item{num_of_prev_attempts - the number of times the student has attempted this module previously.}
 #' \item{studied_credits - the total number of credits for the modules the student is currently studying.}
@@ -70,28 +73,28 @@ dataset_demographics = function(module = c("All", "AAA", "BBB", "CCC", "DDD", "E
 
   # Filter by module
   if(module != "All"){
-    studentInfo = dplyr::filter(studentInfo, code_module == module)
+    studentInfo = filter(studentInfo, code_module == module)
   }
 
   # Remove repeating students
   if(repeat_students == "remove"){
-    studentInfo = dplyr::filter(studentInfo, num_of_prev_attempts == 0)
+    studentInfo = filter(studentInfo, num_of_prev_attempts == 0)
   }
 
   # Filter presentation
   if(presentation == "Summer"){
-    studentInfo = dplyr::filter(studentInfo, code_presentation == "2013B" | code_presentation == "2014B")
+    studentInfo = filter(studentInfo, code_presentation == "2013B" | code_presentation == "2014B")
     pres=unique(studentInfo$code_presentation)
-    print("This includes presentations:")
+    print("This includes the presentations:")
     print(paste0(pres))
 
   }else if(presentation == "Winter"){
-    studentInfo = dplyr::filter(studentInfo, code_presentation == "2013J" | code_presentation == "2014J")
+    studentInfo = filter(studentInfo, code_presentation == "2013J" | code_presentation == "2014J")
     pres=unique(studentInfo$code_presentation)
-    print("This includes presentations:")
+    print("This includes the presentations:")
     print(paste0(pres))
 
-  }else if(presentation == 'All' ){
+  }else if(presentation == "All"){
     studentInfo = studentInfo
 
   }else{
@@ -99,7 +102,7 @@ dataset_demographics = function(module = c("All", "AAA", "BBB", "CCC", "DDD", "E
     possible_pres = unique(studentInfo$code_presentation)
 
     if(presentation %in% possible_pres){
-      studentInfo = dplyr::filter(studentInfo, code_presentation == presentation)
+      studentInfo = filter(studentInfo, code_presentation == presentation)
     }else{
       stop("This presentation does not exist for ", module)
     }

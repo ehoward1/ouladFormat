@@ -1,0 +1,6 @@
+data = combined_dataset(module = "BBB", presentation = "2013J",
+                 repeat_students = "remove", demographics = "include",
+                 assessment = "include", registration = "omit",
+                 na.rm = FALSE,
+                 VLE = "activity", VLE_clicks = "binary",
+                 week_begin = -4, week_end = 10, example_data = FALSE)

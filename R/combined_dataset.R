@@ -1,50 +1,54 @@
-#' Return combined OULAD datasets
+#' Returns the combined formatted OULAD
 #'
-#' Combine multiple OULAD datasets into one tibble that is formatted for data analysis and
-#' where each row represents a unique student
+#' Combines multiple OULAD .csv files into one tibble that is formatted for data analysis and
+#' where each row represents a unique student.
 #'
-#' @param demographics Indicates whether demographic data is included in the outputted dataset.
-#' @param assessment Indicates whether assessment data is included in the outputted dataset.
-#' @param registration Indicates whether registration data is included in the outputted dataset.
-#' @param VLE Indicates whether VLE data is included in the outputted dataset (\code{"omit"} if not included).
-#' If included, the VLE data can returned based on \code{"weekly"} VLE interactions or \code{"daily"} VLE
-#' interactions or interactions according to OU activities (\code{"activity"}).
-#' The VLE data can also be returned as classified under a
-#' specific learning model, either \code{"FSLM"}, \code{"FSLSM"}, \code{"OLS"}, or \code{"VARK"}.
-#' @param module Name of the module to be included, either \code{"AAA"}, \code{"BBB"}, \code{"CCC"},
+#' @param module name of the module to be included, either \code{"AAA"}, \code{"BBB"}, \code{"CCC"},
 #' \code{"DDD"}, \code{"EEE"}, \code{"FFF"} or \code{"GGG"}.
-#' @param presentation Name of the semester of the module to be included, either \code{"2013B"},
+#' @param presentation name of the semester of the module to be included, either \code{"2013B"},
 #' \code{"2014B"}, \code{"2013J"}, \code{"2014J"}, or \code{"All"}.
 #' \code{"B"} indicates a February start time whereas \code{"J"} indicates an October start time. \code{"All"} indicates that all presentations of the module will be included in the returned data.
-#' @param repeat_students Whether students who had previous attempts at the module should be removed, either \code{"remove"} or \code{"keep"}.
+#' @param repeat_students indicator of whether students who had previous attempts at the module should be removed, either \code{"remove"} or \code{"keep"}.
 #' When presentation is set to \code{"All"}, this value is set to \code{"remove"}.
-#' @param VLE_clicks Indicates the format that the VLE data should be returned as, either \code{"total"} views,
-#' \code{"binary"} views, \code{"standardise"} views using the scale function, or \code{"logarithmic"} values.
-#' @param week_begin If VLE is based on OU activities, the first week of VLE data to be included in ouputted data. Depending on the presentation, students
+#' @param demographics indicates whether demographic data is included in the outputted data set.
+#' @param registration indicates whether registration data is included in the outputted data set.
+#' @param VLE indicates whether VLE data is included in the outputted data set (set to \code{"omit"} if not to be included).
+#' If included, the VLE data can be returned based on \code{"weekly"} VLE interactions, \code{"daily"} VLE
+#' interactions or interactions according to Open University activities (\code{"activity"}).
+#' The VLE data can also be returned as classified under a
+#' specific learning model, either \code{"FSLM"}, \code{"FSLSM"}, \code{"OLS"}, or \code{"VARK"}.
+#' @param VLE_clicks indicates the format that the VLE data should be returned as, either \code{"total"} views,
+#' \code{"binary"} views, \code{"standardise"} (views using the scale function), or \code{"logarithmic"} values.
+#' @param week_begin the first semester week of VLE and assessment data to be included in formatted data. Depending on the module presentation, students
 #' started to view activities four weeks prior to the initial module start date. Weeks prior to the initial module start
 #' are indicated by a negative integer.
-#' @param week_end If VLE is based on OU activities, the last week of VLE data to be included in the outputted data.
-#' @param example_data TRUE/FALSE indicator for whether to run a subset of the data as an example
+#' @param week_end the last semester week of VLE and assessment data to be included in the formatted data.
+#' Week 39 is the last week material was viewed (and earlier in some module presentations).
+#' @param assessment indicates whether assessment data is included in the outputted data set.
+#' @param na.rm logical. Indicates whether NAs should be omitted from the average continuous assessment calculations (default)
+#' or treated as zeroes. This calculation only includes continuous assessment that
+#' was due between the period set by \code{"week_begin"} and \code{"week_end"} inclusive.
+#' @param example_data logical. Indicates whether to run a subset of the data as an example.
 #'
 #' @returns Returns the inputs specified for whether assessment, demographics, registration and VLE variables are to be included.
 #' Also one tibble is returned, dataset_combined.
 #'
 #' @section dataset_combined:
 #' A tibble where each row represents a unique student. Depending on the inputs specified,
-#' the tibble includes assessment, demographics, registration and VLE data for the student.
+#' the tibble includes assessment, demographics, registration and VLE data for each student.
 #'
 #' @export
 #'
 #' @seealso
-#' For more information on different variable groupings see:
+#' For more information on different inputs and variables in the dataset_combined tibble, see:
 #' \itemize{
-#' \item{ \code{\link{dataset_assessment}} for information on assessment performance data,}
-#' \item{\code{\link{dataset_demographics}} for information on demographics data,}
-#' \item{\code{\link{dataset_registration}} for information on registration data,}
-#' \item{\code{\link{dataset_VLE_time}} for information on VLE daily or weekly data,}
-#' \item{\code{\link{dataset_VLE_activity}} for information on VLE activity data,}
-#' \item{\code{\link{VLE_learning_classification}} for information on VLE activities classified under a learning model, and}
-#' \item{\code{\link{convert_VLE}} for information on transforming the type of VLE data.}
+#' \item{ \code{\link{dataset_assessment}} for information on the assessment performance data,}
+#' \item{\code{\link{dataset_demographics}} for information on the demographics data,}
+#' \item{\code{\link{dataset_registration}} for information on the registration data,}
+#' \item{\code{\link{dataset_VLE_time}} for information on the VLE daily or weekly data,}
+#' \item{\code{\link{dataset_VLE_activity}} for information on the VLE activity data,}
+#' \item{\code{\link{VLE_learning_classification}} for information on the VLE activities classified under a learning model, and}
+#' \item{\code{\link{convert_VLE}} for information on transforming the data type of the VLE data.}
 #'}
 #'
 #' @references
@@ -52,9 +56,10 @@
 #' volume 4 , (pp. 1–8). https://doi.org/10.1038/sdata.2017.171.
 #'
 #' @examples
-#' combined_dataset(module = "AAA", presentation = "All",
+#' combined_dataset(module = "AAA", presentation = "2013J",
 #' repeat_students = "remove", demographics = "include",
 #' assessment = "include", registration = "include",
+#' na.rm = FALSE,
 #' VLE = "weekly", VLE_clicks = "total",
 #' example_data = TRUE)
 #'
@@ -62,18 +67,21 @@
 #' combined_dataset(module = "BBB", presentation = "2013J",
 #' repeat_students = "remove", demographics = "include",
 #' assessment = "include", registration = "omit",
+#' na.rm = FALSE,
 #' VLE = "activity", VLE_clicks = "binary",
-#' week_begin = 1, week_end = 10, example_data = FALSE)}
+#' week_begin = -4, week_end = 10, example_data = FALSE)}
 combined_dataset = function(module = c("AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG"),
                             presentation = c("2013J", "2014J", "2013B", "2014B", "All"),
                             repeat_students = c("remove", "keep"),
                             demographics = c("include", "omit"),
-                            assessment = c("include", "omit"),
                             registration = c("include", "omit"),
-                            VLE = c("daily", "weekly", "activity", "FSLM",  "FSLSM", "OLS" ,"VARK", "omit"),
-                            VLE_clicks = c("total", "binary", "standardise", "logarithmic"),
-                            week_begin = 1,
-                            week_end = 39,
+                            VLE = c("daily", "weekly", "activity", "FSLM",
+                                    "FSLSM", "OLS" ,"VARK", "omit"),
+                            VLE_clicks = c("total", "binary",
+                                           "standardise", "logarithmic"),
+                            week_begin = -4, week_end = 39,
+                            assessment = c("include", "omit"),
+                            na.rm = FALSE,
                             example_data = FALSE){
 
   # For matching inputs
@@ -104,134 +112,134 @@ combined_dataset = function(module = c("AAA", "BBB", "CCC", "DDD", "EEE", "FFF",
   if(demographics == "include"){
     demographics_data = dataset_demographics(module, presentation, repeat_students)$studentInfo
 
-        if(assessment == "include"){
-          assessment_data = dataset_assessment(module, presentation, repeat_students)$assessment_performance
-          dataset_combined = merge(demographics_data, assessment_data, by = "id_student")
+    if(assessment == "include"){
+      assessment_data = dataset_assessment(module, presentation, repeat_students, week_begin, week_end, na.rm)$assessment_performance
+      dataset_combined = merge(demographics_data, assessment_data, by = "id_student")
 
-            if(registration == "include"){
-              registration_data = dataset_registration(module, presentation, repeat_students)$studentRegistration
-              dataset_combined = merge(dataset_combined, registration_data, by = c("id_student", "code_presentation",
-                                                                                   "code_module"))
-            }
-        }else{
+      if(registration == "include"){
+        registration_data = dataset_registration(module, presentation, repeat_students)$studentRegistration
+        dataset_combined = merge(dataset_combined, registration_data, by = c("id_student", "code_presentation",
+                                                                             "code_module"))
+      }
+    }else{
 
-          dataset_combined = demographics_data
+      dataset_combined = demographics_data
 
-          if(registration == "include"){
-            registration_data = dataset_registration(module, presentation, repeat_students)$studentRegistration
-            dataset_combined = merge(dataset_combined, registration_data, by = c("id_student", "code_presentation",
-                                                                                "code_module"))
-            }
-        }
+      if(registration == "include"){
+        registration_data = dataset_registration(module, presentation, repeat_students)$studentRegistration
+        dataset_combined = merge(dataset_combined, registration_data, by = c("id_student", "code_presentation",
+                                                                             "code_module"))
+      }
+    }
 
   }
 
   if(demographics == "omit"){
 
-        if(assessment == "include"){
+    if(assessment == "include"){
 
-          assessment_data = dataset_assessment(module, presentation, repeat_students)$assessment_performance
-          dataset_combined = assessment_data
+      assessment_data = dataset_assessment(module, presentation, repeat_students, week_begin, week_end, na.rm)$assessment_performance
+      dataset_combined = assessment_data
 
-          if(registration == "include"){
-              registration_data = dataset_registration(module, presentation, repeat_students)$studentRegistration
-              dataset_combined = merge(dataset_combined, registration_data, by = c("id_student"))
-          }
+      if(registration == "include"){
+        registration_data = dataset_registration(module, presentation, repeat_students)$studentRegistration
+        dataset_combined = merge(dataset_combined, registration_data, by = c("id_student"))
+      }
 
-        }else{
+    }else{
 
-          if(registration == "include"){
-                registration_data = dataset_registration(module, presentation, repeat_students)$studentRegistration
-                dataset_combined = registration_data
-            }
+      if(registration == "include"){
+        registration_data = dataset_registration(module, presentation, repeat_students)$studentRegistration
+        dataset_combined = registration_data
+      }
 
 
-        }
+    }
   }
 
-      # Needed in case object 'dataset_combined' exists outside of function
-      env = environment()
+  # Needed in case object 'dataset_combined' exists outside of function
+  env = environment()
 
-     if(VLE == "daily"){
+  if(VLE == "daily"){
 
-     VLE_data = dataset_VLE_time(module, presentation, repeat_students, example_data)$daily_data
+    VLE_data = dataset_VLE_time(module, presentation, repeat_students, week_begin, week_end, example_data)$daily_data
 
-             if(VLE_clicks == "binary"){
-               VLE_data = convert_VLE(VLE_data, "binary")$converted_data
-             }else if(VLE_clicks == "standardise"){
-               VLE_data = convert_VLE(VLE_data, "standardise")$converted_data
-             }else if(VLE_clicks == "logarithmic"){
-               VLE_data = convert_VLE(VLE_data, "logarithmic")$converted_data
-             }else{
-               VLE_data = VLE_data
-             }
+    if(VLE_clicks == "binary"){
+      VLE_data = convert_VLE(VLE_data, "binary")$converted_data
+    }else if(VLE_clicks == "standardise"){
+      VLE_data = convert_VLE(VLE_data, "standardise")$converted_data
+    }else if(VLE_clicks == "logarithmic"){
+      VLE_data = convert_VLE(VLE_data, "logarithmic")$converted_data
+    }else{
+      VLE_data = VLE_data
+    }
 
-             if(exists("dataset_combined", envir = env)){
-               dataset_combined = merge(dataset_combined, VLE_data, by = c("id_student"))
-             }else{
-               dataset_combined = VLE_data
-             }
+    if(exists("dataset_combined", envir = env)){
+      dataset_combined = merge(dataset_combined, VLE_data, by = c("id_student"))
+    }else{
+      dataset_combined = VLE_data
+    }
 
-   }else if(VLE == "weekly"){
+  }else if(VLE == "weekly"){
 
-     VLE_data = dataset_VLE_time(module, presentation, repeat_students, example_data)$weekly_data
+    VLE_data = dataset_VLE_time(module, presentation, repeat_students, week_begin, week_end, example_data)$weekly_data
 
-             if(VLE_clicks == "binary"){
-               VLE_data = convert_VLE(VLE_data, "binary")$converted_data
-             }else if(VLE_clicks == "standardise"){
-               VLE_data = convert_VLE(VLE_data, "standardise")$converted_data
-             }else if(VLE_clicks == "logarithmic"){
-               VLE_data = convert_VLE(VLE_data, "logarithmic")$converted_data
-             }else{
-               VLE_data = VLE_data
-             }
+    if(VLE_clicks == "binary"){
+      VLE_data = convert_VLE(VLE_data, "binary")$converted_data
+    }else if(VLE_clicks == "standardise"){
+      VLE_data = convert_VLE(VLE_data, "standardise")$converted_data
+    }else if(VLE_clicks == "logarithmic"){
+      VLE_data = convert_VLE(VLE_data, "logarithmic")$converted_data
+    }else{
+      VLE_data = VLE_data
+    }
 
-             if(exists("dataset_combined", envir = env)){
-               dataset_combined = merge(dataset_combined, VLE_data, by = c("id_student"))
-             }else{
-               dataset_combined = VLE_data
-             }
+    if(exists("dataset_combined", envir = env)){
+      dataset_combined = merge(dataset_combined, VLE_data, by = c("id_student"))
+    }else{
+      dataset_combined = VLE_data
+    }
 
-   }else if(VLE == "activity"){
+  }else if(VLE == "activity"){
 
-     VLE_data = dataset_VLE_activity(module, presentation, repeat_students, week_begin, week_end, example_data)$resource_data
+    VLE_data = dataset_VLE_activity(module, presentation, repeat_students, week_begin, week_end, example_data)$resource_data
 
-     if(VLE_clicks == "binary"){
-       VLE_data = convert_VLE(VLE_data, "binary")$converted_data
-     }else if(VLE_clicks == "standardise"){
-       VLE_data = convert_VLE(VLE_data, "standardise")$converted_data
-     }else if(VLE_clicks == "logarithmic"){
-       VLE_data = convert_VLE(VLE_data, "logarithmic")$converted_data
-     }else{
-       VLE_data = VLE_data
-     }
+    if(VLE_clicks == "binary"){
+      VLE_data = convert_VLE(VLE_data, "binary")$converted_data
+    }else if(VLE_clicks == "standardise"){
+      VLE_data = convert_VLE(VLE_data, "standardise")$converted_data
+    }else if(VLE_clicks == "logarithmic"){
+      VLE_data = convert_VLE(VLE_data, "logarithmic")$converted_data
+    }else{
+      VLE_data = VLE_data
+    }
 
-     if(exists("dataset_combined", envir = env)){
-       dataset_combined = merge(dataset_combined, VLE_data, by = c("id_student"))
-     }else{
-       dataset_combined = VLE_data
-     }
+    if(exists("dataset_combined", envir = env)){
+      dataset_combined = merge(dataset_combined, VLE_data, by = c("id_student"))
+    }else{
+      dataset_combined = VLE_data
+    }
 
   }else if(VLE == "FSLM"){
 
-     VLE_data = dataset_VLE_activity(module, presentation, repeat_students, week_begin, week_end, example_data)$resource_data
-     VLE_data = VLE_learning_classification(VLE_data, classification = "FSLM")$VLE_classified_data
+    VLE_data = dataset_VLE_activity(module, presentation, repeat_students, week_begin, week_end, example_data)$resource_data
+    VLE_data = VLE_learning_classification(VLE_data, classification = "FSLM")$VLE_classified_data
 
-     if(VLE_clicks == "binary"){
-       VLE_data = convert_VLE(VLE_data, "binary")$converted_data
-     }else if(VLE_clicks == "standardise"){
-       VLE_data = convert_VLE(VLE_data, "standardise")$converted_data
-     }else if(VLE_clicks == "logarithmic"){
-       VLE_data = convert_VLE(VLE_data, "logarithmic")$converted_data
-     }else{
-       VLE_data = VLE_data
-     }
+    if(VLE_clicks == "binary"){
+      VLE_data = convert_VLE(VLE_data, "binary")$converted_data
+    }else if(VLE_clicks == "standardise"){
+      VLE_data = convert_VLE(VLE_data, "standardise")$converted_data
+    }else if(VLE_clicks == "logarithmic"){
+      VLE_data = convert_VLE(VLE_data, "logarithmic")$converted_data
+    }else{
+      VLE_data = VLE_data
+    }
 
-     if(exists("dataset_combined", envir = env)){
-       dataset_combined = merge(dataset_combined, VLE_data, by = c("id_student"))
-     }else{
-       dataset_combined = VLE_data
-     }
+    if(exists("dataset_combined", envir = env)){
+      dataset_combined = merge(dataset_combined, VLE_data, by = c("id_student"))
+    }else{
+      dataset_combined = VLE_data
+    }
 
   }else if(VLE == "FSLSM"){
 
@@ -304,4 +312,3 @@ combined_dataset = function(module = c("AAA", "BBB", "CCC", "DDD", "EEE", "FFF",
               VLE_dataset = VLE))
 
 }
-

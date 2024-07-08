@@ -1,6 +1,6 @@
-#' Classify VLE activities under a learning model
+#' Classify VLE activities
 #'
-#' Transform OU VLE activities to classifications under either the:
+#' Transform Open University VLE activities to classifications under either the:
 #' \itemize{
 #' \item{Filder-Selverman Learning Style Model (FSLM) mapped by Balti at al. (2023),}
 #' \item{Felder–Silverman Learning Style Model (FSLSM) (see Felder & Silverman, 1988) mapped by Nazempour and Darabi (2023),}
@@ -9,8 +9,8 @@
 #' on Li and Yin (2017).}
 #' }
 #'
-#' @param activity_data VLE activity dataset to be converted.
-#' @param classification Learning model for categorising the different VLE activities under.
+#' @param activity_data VLE activity data set to be converted.
+#' @param classification classification system to be used to categorise the different VLE activities under.
 #'
 #' @returns Returns the classification specified, the mapping for the VLE activities to each category in the specified
 #' learning model, and one tibble, VLE_classified_data.
@@ -20,7 +20,7 @@
 #' different categories of the specified learning model.
 #'
 #' @seealso
-#' \code{\link{dataset_VLE_activity}} for obtaining the VLE dataset for input data
+#' \code{\link{dataset_VLE_activity}} for obtaining the VLE data set needed for input data
 #' @export
 #' @importFrom dplyr "mutate" "tibble" "select" "rowwise"
 #' @importFrom magrittr "%>%"
@@ -51,9 +51,14 @@
 #' Lecture Notes in Computer Science, 12817. Springer, Cham. https://doi.org/10.1007/978-3-030-82153-1_31
 #'
 #' @examples
-#' VLE_data = dataset_VLE_activity(module = "AAA", presentation = "2013J",
-#' repeat_students = "remove", example_data = TRUE)$resource_data
+#' VLE_data = dataset_VLE_activity(example_data = TRUE)$resource_data
 #' VLE_learning_classification(VLE_data, classification = "FSLSM")
+#'
+#' \dontrun{
+#' VLE_data =  dataset_VLE_activity(module = "BBB",
+#' presentation = "2013J", repeat_students = "remove",
+#' week_begin = 1, week_end = 39, example_data = FALSE)
+#' VLE_learning_classification(VLE_data, classification = "VARK")}
 VLE_learning_classification = function(activity_data, classification = c("FSLM",  "FSLSM", "OLS" ,"VARK")){
 
   # For matching

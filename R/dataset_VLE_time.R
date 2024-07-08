@@ -1,17 +1,27 @@
-#' Return formatted VLE dataset for daily and weekly counts
+#' Returns the formatted VLE data set for daily and weekly counts
 #'
-#' Load and formats the student Virtual Learning Environment (VLE) dataset from the OULAD for data analysis.
+#' Load and formats the student Virtual Learning Environment (VLE) data set from the OULAD for data analysis.
 #'
-#' @param module Name of the module to be included, either \code{"AAA"}, \code{"BBB"}, \code{"CCC"}, \code{"DDD"}, \code{"EEE"}, \code{"FFF"} or \code{"GGG"}.
-#' @param presentation Name of the semester of the module to be included, either \code{"2013B"},
+#' @param module name of the module to be included, either \code{"AAA"}, \code{"BBB"}, \code{"CCC"}, \code{"DDD"}, \code{"EEE"}, \code{"FFF"} or \code{"GGG"}.
+#' @param presentation name of the semester of the module to be included, either \code{"2013B"},
 #' \code{"2014B"}, \code{"2013J"}, \code{"2014J"}, or \code{"All"}.
 #' \code{"B"} indicates a February start time whereas \code{"J"} indicates an October start time. \code{"All"} indicates that all presentations of the module will be included in the returned data.
-#' @param repeat_students Indicator of whether students who had previous attempts at the module should be removed, either \code{"remove"} or \code{"keep"}.
+#' @param repeat_students indicator of whether students who had previous attempts at the module should be removed, either \code{"remove"} or \code{"keep"}.
 #' If presentation is set to \code{"All"}, this is automatically set to \code{"remove"}.
-#' @param example_data TRUE/FALSE indicator for whether to run a subset of the data as an example.
+#' @param week_begin the first semester week of VLE data to be included in formatted data. Depending on the module presentation, students
+#' started to view activities four weeks prior to the initial module start date. Weeks prior to the initial module start
+#' are indicated by a negative integer.
+#' @param week_end the last semester week of VLE data to be included in the formatted data.
+#' Week 39 is the last week material was viewed (and earlier in some module presentations).
+#' @param example_data logical. Indicates whether to run a subset of the data as an example.
 #'
-#' @returns Returns the inputs specified - module, presentation, and whether repeat students are to be included.
-#' Three tibbles are also returned: 1) filtered_data, 2) daily_data, and 3) weekly_data.
+#' @returns Returns three tibbles based on the OULAD studentVle.csv file,
+#' the specified inputs (module, presentation, and repeat_students), and
+#' the range of the weeks included in the tibbles. \code{week_begin} and \code{week_end}
+#' indicates the first and last semester week respectively that is included in
+#' the output tibbles. These may be different to the corresponding input parameters.
+#' Weeks prior to the initial module start day are indicated by a negative integer.
+#' The three tibbles returned are: 1) filtered_data, 2) daily_data, and 3) weekly_data.
 #'
 #' @section filtered_data tibble:
 #' A tibble based on the students' VLE interactions and the inputs. The tibble consists of (Kuzilek et al., 2017):
@@ -39,34 +49,43 @@
 #' @importFrom magrittr "%>%"
 #' @importFrom tidyr "pivot_wider" "replace_na"
 #' @importFrom stats "aggregate"
+#' @importFrom utils "read.csv"
 #' @seealso \code{\link{convert_VLE}}, \code{\link{dataset_VLE_activity}}, and \code{\link{combined_dataset}}
 #' @examples
-#' VLE_data = dataset_VLE_time(module = "AAA", presentation = "2013J",
-#' repeat_students = "remove", example_data = TRUE)
+#' dataset_VLE_time(example_data = TRUE)
+#'
+#'\dontrun{
+#' dataset_VLE_time(module = "BBB", presentation = "2013J",
+#' repeat_students = "remove",
+#' week_begin = 1, week_end = 13,
+#' example_data=FALSE)}
 dataset_VLE_time = function(module = c("AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG"),
                              presentation = c("2013B", "2014B", "2013J", "2014J", "All"),
                              repeat_students = c("remove", "keep"),
+                             week_begin = -4, week_end = 39,
                              example_data = FALSE){
 
   # Bind variables
   code_module = possible_pres = id_student = code_presentation = num_of_prev_attempts =
-    comparison = missing_days = zero = column_number = sum_click = NULL
+    comparison = missing_days = zero = column_number = daily_sum_click =
+    weekly_sum_click = week = NULL
 
-  # Summary: Need dataset with click data only
+  # Set local environment
   env = environment()
-  load_github_modified("https://github.com/ehoward1/oulad_data/blob/d451a05599dfa66223197a917f4ca84d1849b3a2/studentVle.RData", env)
 
   # For matching
   module = match.arg(module)
   presentation = match.arg(presentation)
   repeat_students = match.arg(repeat_students)
 
-  # Work with subset of data for example as full dataset takes >5 sec to run
+  # Work with subset of data for example as full data set takes >5 sec to run
   if(example_data == TRUE){
-    studentVle = studentVle[12000:13500,]
     module = "AAA"
     presentation = "2013J"
     print("For this example, a subset of the data is used. This subset is drawn from module AAA and presentation 2013J.")
+    studentVle = read.csv(path_to_file("sample_studentVle.csv"), header = TRUE)
+  }else{
+    load_github_modified("https://github.com/ehoward1/oulad_data/blob/d451a05599dfa66223197a917f4ca84d1849b3a2/studentVle.RData", env)
   }
 
   # Data types
@@ -110,16 +129,33 @@ dataset_VLE_time = function(module = c("AAA", "BBB", "CCC", "DDD", "EEE", "FFF",
     }
   }
 
+  # Checks to ensure weeks requested are valid for inputs
+  if(week_begin == 0){stop("Beginning week cannot be 0")}
+  if(week_end == 0){stop("Ending week cannot be 0")}
+  if(week_begin > ceiling(max(studentVle$date)/7)){stop(paste("For the current inputs, the VLE data can be filtered between weeks",
+                                                              floor(min(studentVle$date)/7), "and weeks", ceiling(max(studentVle$date)/7)))}
+  if(week_end < floor(min(studentVle$date)/7)){stop(paste("For the current inputs, the VLE data can be filtered between weeks",
+                                                          floor(min(studentVle$date)/7), "and weeks", ceiling(max(studentVle$date)/7)))}
+  if(week_begin > week_end){stop("week_begin should not be greater than week_end")}
+
+  #Filter by week
+  date_lower = ifelse(week_begin > 0, (week_begin-1)*7, (week_begin*7))
+  date_upper = ifelse(week_end > 0, (week_end*7)-1, ((week_end+1)*7)-1)
+  studentVle = filter(studentVle, date >= date_lower, date <= date_upper)
+
+  studentVle_raw = studentVle
+
   # now to create daily counts!
 
   # Create a count for each date
-  studentVle = aggregate(studentVle$sum_click, by=list(studentVle$id_student, studentVle$date), FUN=sum) %>% tibble()
+  studentVle = aggregate(studentVle$sum_click, by=list(studentVle$id_student, studentVle$date), FUN=sum) %>%
+    tibble()
 
   # rename columns
-  colnames(studentVle) = c("id_student", "date", "sum_click")
+  colnames(studentVle) = c("id_student", "date", "daily_sum_click")
 
   # Change from a long to wide dataframe where each column represents one date
-  studentVle_daily = pivot_wider(studentVle, names_from = date, values_from = sum_click)%>%
+  studentVle_daily = pivot_wider(studentVle, names_from = date, values_from = daily_sum_click)%>%
     mutate_all(~replace_na(.,0)) # replace NAs with 0 (i.e., no view on a day)
 
   # Add in any days we are missing
@@ -144,52 +180,67 @@ dataset_VLE_time = function(module = c("AAA", "BBB", "CCC", "DDD", "EEE", "FFF",
   studentVle_daily = tibble(test)
 
   # Now to create weekly counts!
-  studentVle_weekly = studentVle_daily[,1]
-  zero = which(colnames(studentVle_daily)==0) # find column where module began
-  if(zero == 2){ # then there are no pre-weeks
-    pre_week_numbers = 0
-  }else{
-    pre_week_numbers = ceiling(zero/7)
-    }
+  # Add in week variable
+  studentVle_neg = filter(studentVle, date<0)
+  studentVle_pos = filter(studentVle, date>-1)
 
-  # Weeks prior to start (Day 0)
-  if(pre_week_numbers != 0){
-  for(i in 1:pre_week_numbers){
-    if((zero-i*7)<0){ # check if we go out of bounds
-      studentVle_weekly[,i+1] = apply(studentVle_daily[,2:(zero-(i-1)*7-1)], MARGIN=1, sum)
+  studentVle_neg$week = floor(studentVle_neg$date/7)
+  studentVle_pos$week = ceiling((studentVle_pos$date+1)/7)
+
+  studentVle = rbind.data.frame(studentVle_neg, studentVle_pos)
+
+  # Create a count for each week
+  studentVle = aggregate(studentVle$daily_sum_click,
+                         by=list(studentVle$id_student, studentVle$week), FUN=sum) %>% tibble()
+
+  # rename columns
+  colnames(studentVle) = c("id_student", "week", "weekly_sum_click")
+
+  # Change from a long to wide dataframe where each column represents one date
+  studentVle_weekly = pivot_wider(studentVle, names_from = week, values_from = weekly_sum_click)%>%
+    mutate_all(~replace_na(.,0)) # replace NAs with 0 (i.e., no view on a week)
+
+  # Add in any weeks that we are missing
+  weeks = colnames(studentVle_weekly[-1]) %>% as.numeric()
+  comparison = seq(from = min(weeks), to = max(weeks), by=1)
+  missing_weeks = which(is.na(match(comparison, weeks))) + 1
+  column_number = ncol(studentVle_weekly) + length(missing_weeks)
+
+  if(length(missing_weeks) != 0){
+  j=2
+  test = studentVle_weekly[,1]
+
+  for(i in 2:column_number){
+    if(i %in% missing_weeks){
+      test = cbind.data.frame(test, 0)
     }else{
-      studentVle_weekly[,i+1] = apply(studentVle_daily[,(zero-i*7):(zero-(i-1)*7-1)], MARGIN=1, sum)
+      test = cbind.data.frame(test, studentVle_weekly[,j])
+      j=j+1
     }
   }
-  studentVle_weekly = data.frame(studentVle_weekly[,1], rev(studentVle_weekly[,-1]))
+
+  # Remove week 0
+  colnames(test) = c("id_student", min(weeks):max(weeks))
+  test = test[,-c(which(colnames(test)==0))]
+  studentVle_weekly = tibble(test)
   }
 
-  # Weeks during semester
-  max_weeks = ceiling(ncol(studentVle_daily[,-(1:zero-1)])/7)
-  max_days = max(days)
-
-  for(i in 1:max_weeks){
-    if((zero+6+(i-1)*7) < (zero+max_days)){
-      hold_day = (zero+6+(i-1)*7)
-    }else{
-      hold_day = zero+max_days
-        }
-    studentVle_weekly[,pre_week_numbers+i+1] = apply(studentVle_daily[,(zero+(i-1)*7):hold_day], MARGIN=1, sum)
-  }
-
-  if(pre_week_numbers != 0){
-  colnames(studentVle_weekly) = c("id_student",
-                                  paste0("Week-pre-",pre_week_numbers:1),
-                                  paste0("Week",1:max_weeks))
+  if(min(weeks)<0){
+    colnames(studentVle_weekly) = c("id_student",
+                                  paste0("Week_pre",min(weeks):-1),
+                                  paste0("Week",1:max(weeks)))
   }else{
     colnames(studentVle_weekly) = c("id_student",
-                                    paste0("Week",1:max_weeks))
+                                    paste0("Week",1:max(weeks)))
   }
 
-  return(list(filtered_data = tibble(studentVle),
+  # Return
+  return(list(filtered_data = tibble(studentVle_raw),
               daily_data = tibble(studentVle_daily),
               weekly_data = tibble(studentVle_weekly),
               module = module,
               presentation = presentation,
-              repeat_students = repeat_students))
+              repeat_students = repeat_students,
+              week_begin = min(weeks),
+              week_end = max(weeks)))
 }

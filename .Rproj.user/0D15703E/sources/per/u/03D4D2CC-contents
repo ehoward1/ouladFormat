@@ -1,0 +1,23 @@
+module = "DDD"
+presentation = "2013J"
+repeat_students = "remove"
+demographics = "omit"
+assessment = "include"
+registration = "omit"
+VLE = "weekly"
+VLE_clicks = "standardise"
+week_begin=1
+week_end=13
+example_data = FALSE
+
+
+mot1 <- combined_dataset(module = "DDD", presentation = "2013J", 
+                         repeat_students = "remove", demographics = "omit", 
+                         assessment = "include", na.rm = FALSE,
+                         registration = "omit", VLE = "weekly", VLE_clicks = "standardise",
+                         week_begin=1, week_end=13)$dataset_combined
+
+dat = dataset_VLE_time(module = "AAA", presentation = "2013J", repeat_students = "remove",
+                  week_begin = 1, week_end = 13,
+                  example_data = FALSE)
+convert_VLE(dat$weekly_data, conversion = "standardise")

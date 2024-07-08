@@ -1,27 +1,30 @@
-#' Return formatted registration dataset
+#' Returns the formatted registration data set
 #'
-#' Load and formats the student registration dataset from the OULAD for data analysis.
+#' Load and formats the student registration data set from the OULAD for data analysis.
 #'
-#' @param module Name of the module to be included, either \code{"AAA"}, \code{"BBB"}, \code{"CCC"}, \code{"DDD"}, \code{"EEE"}, \code{"FFF"} or \code{"GGG"}.
-#' @param presentation Name of the semester of the module to be included, either \code{"2013B"},
+#' @param module name of the module to be included, either \code{"All"}, \code{"AAA"}, \code{"BBB"}, \code{"CCC"}, \code{"DDD"}, \code{"EEE"}, \code{"FFF"} or \code{"GGG"}.
+#' @param presentation name of the semester of the module to be included, either \code{"2013B"},
 #' \code{"2014B"}, \code{"2013J"}, \code{"2014J"}, \code{"All"}, \code{"Summer"} or \code{"Winter"}.
-#' \code{"B"} indicates a February start time whereas \code{"J"} indicates an October start time. \code{"All"} indicates that all presentations of the module will be included in the returned data.
-#' @param repeat_students Indicator of whether students who had previous attempts at the module should be removed, either \code{"remove"} or \code{"keep"}.
+#' \code{"B"} indicates a February start time whereas \code{"J"} indicates an October start time. \code{"All"} indicates
+#' that all presentations of the module will be included in the returned data. \code{"Summer"} returns both \code{"2013B"} and \code{"2014B"}.
+#' \code{"Winter"} returns both \code{"2013J"} and \code{"2014J"}.
+#' @param repeat_students indicator of whether students who had previous attempts at the module should be removed, either \code{"remove"} or \code{"keep"}.
 #'
-#' @returns Returns the inputs specified - module, presentation and whether repeat students are to be included.
-#' One tibble based on the oulad studentRegistration.csv file and the inputs is also returned.
+#' @returns Returns one tibble based on the OULAD studentRegistration.csv file
+#' and the specified inputs (module, presentation, and repeat_students).
+#'
 #' The tibble consists of five columns (Kuzilek et al., 2017):
 #'
 #' \itemize{
 #' \item{id_student - the unique student identification number.}
 #' \item{code_module - module identification code.}
-#' \item{code_presentation - presentation identification code.}
+#' \item{code_presentation - module presentation identification code.}
 #' \item{date_registration - the day of student’s registration for the module presentation. Modules start on day 0.}
 #' \item{date_unregistration - the day of student unregistration from the module presentation. This is NA if the student completed the module presentation.}
 #' }
 #'
 #' @references
-#' Kuzilek, J., Hlosta, M., & Zdrahal, Z. (2017). Open university learning analytics dataset. Scientific Data
+#' Kuzilek, J., Hlosta, M., & Zdrahal, Z. (2017). Open university learning analytics data set. Scientific Data
 #' volume 4 , (pp. 1–8). https://doi.org/10.1038/sdata.2017.171.
 #'
 #' @seealso \code{\link{combined_dataset}}
@@ -60,19 +63,19 @@ dataset_registration = function(module = c("All", "AAA", "BBB", "CCC", "DDD", "E
   }
 
   # Filter presentation
-  if(presentation == 'Summer'){
+  if(presentation == "Summer"){
     studentRegistration = filter(studentRegistration, code_presentation == "2013B" | code_presentation == "2014B")
-    pres=unique(studentRegistration$code_presentation)
-    print("This includes presentations:")
+    pres = unique(studentRegistration$code_presentation)
+    print("This includes the presentations:")
     print(paste0(pres))
 
-  }else if(presentation == 'Winter'){
+  }else if(presentation == "Winter"){
     studentRegistration = filter(studentRegistration, code_presentation == "2013J" | code_presentation == "2014J")
-    pres=unique(studentRegistration$code_presentation)
-    print("This includes presentations:")
+    pres= unique(studentRegistration$code_presentation)
+    print("This includes the presentations:")
     print(paste0(pres))
 
-  }else if(presentation == 'All' ){
+  }else if(presentation == "All"){
     studentRegistration = studentRegistration
 
   }else{
@@ -92,7 +95,6 @@ dataset_registration = function(module = c("All", "AAA", "BBB", "CCC", "DDD", "E
     studentInfo = select(studentInfo, id_student, code_module, code_presentation, num_of_prev_attempts)
     combined = merge(studentRegistration, studentInfo, by=c("id_student", "code_module", "code_presentation"))
     studentRegistration = filter(combined, num_of_prev_attempts == 0) %>% select(!(num_of_prev_attempts))
-
   }
 
   return(list(studentRegistration = tibble(studentRegistration),

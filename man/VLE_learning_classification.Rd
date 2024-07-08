@@ -2,7 +2,7 @@
 % Please edit documentation in R/VLE_learning_classification.R
 \name{VLE_learning_classification}
 \alias{VLE_learning_classification}
-\title{Classify VLE activities under a learning model}
+\title{Classify VLE activities}
 \usage{
 VLE_learning_classification(
   activity_data,
@@ -10,16 +10,16 @@ VLE_learning_classification(
 )
 }
 \arguments{
-\item{activity_data}{VLE activity dataset to be converted.}
+\item{activity_data}{VLE activity data set to be converted.}
 
-\item{classification}{Learning model for categorising the different VLE activities under.}
+\item{classification}{classification system to be used to categorise the different VLE activities under.}
 }
 \value{
 Returns the classification specified, the mapping for the VLE activities to each category in the specified
 learning model, and one tibble, VLE_classified_data.
 }
 \description{
-Transform OU VLE activities to classifications under either the:
+Transform Open University VLE activities to classifications under either the:
 \itemize{
 \item{Filder-Selverman Learning Style Model (FSLM) mapped by Balti at al. (2023),}
 \item{Felder–Silverman Learning Style Model (FSLSM) (see Felder & Silverman, 1988) mapped by Nazempour and Darabi (2023),}
@@ -35,9 +35,14 @@ different categories of the specified learning model.
 }
 
 \examples{
-VLE_data = dataset_VLE_activity(module = "AAA", presentation = "2013J",
-repeat_students = "remove", example_data = TRUE)$resource_data
+VLE_data = dataset_VLE_activity(example_data = TRUE)$resource_data
 VLE_learning_classification(VLE_data, classification = "FSLSM")
+
+\dontrun{
+VLE_data =  dataset_VLE_activity(module = "BBB",
+presentation = "2013J", repeat_students = "remove",
+week_begin = 1, week_end = 39, example_data = FALSE)
+VLE_learning_classification(VLE_data, classification = "VARK")}
 }
 \references{
 Balti, R., Hedhili, A., Chaari, W.L. & Abed, M. (2023). Hybrid analysis of the learner’s online behavior based
@@ -65,5 +70,5 @@ Fei, Z., Qiu, M., Kung, SY. (eds) Knowledge Science, Engineering and Management.
 Lecture Notes in Computer Science, 12817. Springer, Cham. https://doi.org/10.1007/978-3-030-82153-1_31
 }
 \seealso{
-\code{\link{dataset_VLE_activity}} for obtaining the VLE dataset for input data
+\code{\link{dataset_VLE_activity}} for obtaining the VLE data set needed for input data
 }
